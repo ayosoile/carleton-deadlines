@@ -2,38 +2,35 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose')
 const Deadline = require('./model/deadline.model.js');
+const cors = require('cors');
+
 
 
 //Middleware
 const app = express()
 app.use(express.json());
 
-app.get('/', (req,res) => {
-    res.send("Hello World");
-})
+//Allows communication between backend and frontend
+app.use(cors());
 
+//helper function to calculate days remaining/overdue for add and get requests dynamically
+function computeDeadlineFields(deadline) {
+  const daysRemaining = Math.ceil(
+    (new Date(deadline.due_date).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24) + 1
+  );
+
+  return {
+    ...deadline,
+    daysRemaining,
+    overdue: daysRemaining < 0
+  };
+}
 
 //Retrieves all deadlines sorted from database, computes days remaining
-app.get('/deadlines', async (req,res) => {
+app.get('/', async (req,res) => {
     try{
-        const deadlines = await Deadline.find({}).sort({due_date: 1});
-
-        //calculates days remaining for due date
-        const result = deadlines.map(d => {
-            const daysRemaining = Math.ceil(
-                (new Date(d.due_date).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / (1000 * 60 * 60 * 24)
-            );
-            return {
-                _id: d._id,
-                course: d.course,
-                title: d.title,
-                type: d.type,
-                due_date: d.due_date,
-                daysRemaining,
-                overdue: daysRemaining < 0
-
-            };
-        });
+        const deadlines = await Deadline.find({});
+        const result = deadlines.map(d => computeDeadlineFields(d.toObject()));
         res.status(200).json(result)
     } catch (error) {
         res.status(500).json({message: error.message});
@@ -41,17 +38,18 @@ app.get('/deadlines', async (req,res) => {
 })
 
 //Add a new deadline to database
-app.post('/deadlines', async (req,res) => {
+app.post('/', async (req,res) => {
     try{
         const deadline = await Deadline.create(req.body);
-        res.status(201).json(deadline);
+        const result = computeDeadlineFields(deadline.toObject());
+        res.status(201).json(result);
     } catch (error) {
         res.status(500).json({message: error.message});
     }
 })
 
 //Update deadline
-app.put('/deadlines/:id', async (req,res)=>{
+app.put('/:id', async (req,res)=>{
     try{
         const {id} = req.params;
         const deadline = await Deadline.findByIdAndUpdate(id,req.body,
@@ -64,14 +62,14 @@ app.put('/deadlines/:id', async (req,res)=>{
         if(!Deadline) {
             return res.status(404).json({message: "Deadline Not Found"});
         }
-        res.status(200).json({deadline});
+        res.status(200).json(computeDeadlineFields(deadline.toObject()));
     } catch(error) {
         res.status(500).json({message: error.message});
     }
 })
 
 //Delete deadline
-app.delete('/deadlines/:id', async (req,res)=>{
+app.delete('/:id', async (req,res)=>{
     try{
     const {id} = req.params;
     const deadline = await Deadline.findByIdAndDelete(id);
@@ -91,8 +89,8 @@ app.delete('/deadlines/:id', async (req,res)=>{
 mongoose.connect(process.env.MONGO_URI)
 .then(()=> {
     console.log('Database connected successfully');
-    app.listen(3000, () => {
-    console.log('Server is running on port 3000');
+    app.listen(5000, () => {
+    console.log('Server is running on port 5000');
     });
 })
 .catch((err) => {

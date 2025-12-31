@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+
+//Schema for each deadline entry
 const DeadlineSchema = mongoose.Schema(
     {
         course: {
