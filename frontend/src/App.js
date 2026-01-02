@@ -86,7 +86,7 @@ function App() {
    }
 
     const fetchDeadlines = async () => {
-      const res = await authFetch("http://localhost:5000/");
+      const res = await authFetch("https://deadline-tracker-m34t.onrender.com");
       const data = await res.json();
       setDeadlines(data);
     };
@@ -96,7 +96,7 @@ function App() {
 
   // -------------------- DELETE --------------------
   const deleteDeadline = async (id) => {
-    await authFetch(`http://localhost:5000/${id}`, { method: "DELETE" });
+    await authFetch(`https://deadline-tracker-m34t.onrender.com/${id}`, { method: "DELETE" });
 
     setDeadlines(prev =>
       prev.filter(deadline => deadline._id !== id)
@@ -113,7 +113,7 @@ function App() {
       return;
     }
 
-    const res = await authFetch("http://localhost:5000/", {
+    const res = await authFetch("https://deadline-tracker-m34t.onrender.com", {
       method: "POST",
       body: JSON.stringify({
         ...newDeadline,
@@ -144,7 +144,7 @@ function App() {
     }
 
     const res = await authFetch(
-      `http://localhost:5000/${editForm._id}`,
+      `https://deadline-tracker-m34t.onrender.com/${editForm._id}`,
       {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -172,7 +172,7 @@ function App() {
     setAuthError("");
 
     try {
-      const res = await fetch("http://localhost:5000/login", {
+      const res = await fetch("https://deadline-tracker-m34t.onrender.com/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(loginForm)
@@ -206,7 +206,7 @@ function App() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/register", {
+      const res = await fetch("https://deadline-tracker-m34t.onrender.com/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
